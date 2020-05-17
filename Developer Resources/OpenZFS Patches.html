@@ -1,0 +1,409 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>OpenZFS Patches &#8212; OpenZFS  documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="OpenZFS Exceptions" href="OpenZFS Exceptions.html" />
+    <link rel="prev" title="Buildbot Options" href="Buildbot Options.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="openzfs-patches">
+<h1>OpenZFS Patches<a class="headerlink" href="#openzfs-patches" title="Permalink to this headline">¶</a></h1>
+<p>The ZFS on Linux project is an adaptation of the upstream <a class="reference external" href="https://github.com/openzfs/openzfs/">OpenZFS
+repository</a> designed to work in
+a Linux environment. This upstream repository acts as a location where
+new features, bug fixes, and performance improvements from all the
+OpenZFS platforms can be integrated. Each platform is responsible for
+tracking the OpenZFS repository and merging the relevant improvements
+back in to their release.</p>
+<p>For the ZFS on Linux project this tracking is managed through an
+<a class="reference external" href="http://build.zfsonlinux.org/openzfs-tracking.html">OpenZFS tracking</a>
+page. The page is updated regularly and shows a list of OpenZFS commits
+and their status in regard to the ZFS on Linux master branch.</p>
+<p>This page describes the process of applying outstanding OpenZFS commits
+to ZFS on Linux and submitting those changes for inclusion. As a
+developer this is a great way to familiarize yourself with ZFS on Linux
+and to begin quickly making a valuable contribution to the project. The
+following guide assumes you have a <a class="reference external" href="https://help.github.com/articles/signing-up-for-a-new-github-account/">github
+account</a>,
+are familiar with git, and are used to developing in a Linux
+environment.</p>
+<div class="section" id="porting-openzfs-changes-to-zfs-on-linux">
+<h2>Porting OpenZFS changes to ZFS on Linux<a class="headerlink" href="#porting-openzfs-changes-to-zfs-on-linux" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="setup-the-environment">
+<h3>Setup the Environment<a class="headerlink" href="#setup-the-environment" title="Permalink to this headline">¶</a></h3>
+<p><strong>Clone the source.</strong> Start by making a local clone of the
+<a class="reference external" href="https://github.com/zfsonlinux/spl">spl</a> and
+<a class="reference external" href="https://github.com/zfsonlinux/zfs">zfs</a> repositories.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone -o zfsonlinux https://github.com/zfsonlinux/spl.git
+$ git clone -o zfsonlinux https://github.com/zfsonlinux/zfs.git
+</pre></div>
+</div>
+<p><strong>Add remote repositories.</strong> Using the GitHub web interface
+<a class="reference external" href="https://help.github.com/articles/fork-a-repo/">fork</a> the
+<a class="reference external" href="https://github.com/zfsonlinux/zfs">zfs</a> repository in to your
+personal GitHub account. Add your new zfs fork and the
+<a class="reference external" href="https://github.com/openzfs/openzfs/">openzfs</a> repository as remotes
+and then fetch both repositories. The OpenZFS repository is large and
+the initial fetch may take some time over a slow connection.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd zfs
+$ git remote add &lt;your-github-account&gt; git@github.com:&lt;your-github-account&gt;/zfs.git
+$ git remote add openzfs https://github.com/openzfs/openzfs.git
+$ git fetch --all
+</pre></div>
+</div>
+<p><strong>Build the source.</strong> Compile the spl and zfs master branches. These
+branches are always kept stable and this is a useful verification that
+you have a full build environment installed and all the required
+dependencies are available. This may also speed up the compile time
+latter for small patches where incremental builds are an option.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd ../spl
+$ sh autogen.sh &amp;&amp; ./configure --enable-debug &amp;&amp; make -s -j$(nproc)
+$
+$ cd ../zfs
+$ sh autogen.sh &amp;&amp; ./configure --enable-debug &amp;&amp; make -s -j$(nproc)
+</pre></div>
+</div>
+</div>
+<div class="section" id="pick-a-patch">
+<h3>Pick a patch<a class="headerlink" href="#pick-a-patch" title="Permalink to this headline">¶</a></h3>
+<p>Consult the <a class="reference external" href="http://build.zfsonlinux.org/openzfs-tracking.html">OpenZFS
+tracking</a> page and
+select a patch which has not yet been applied. For your first patch you
+will want to select a small patch to familiarize yourself with the
+process.</p>
+</div>
+<div class="section" id="porting-a-patch">
+<h3>Porting a Patch<a class="headerlink" href="#porting-a-patch" title="Permalink to this headline">¶</a></h3>
+<p>There are 2 methods:</p>
+<ul class="simple">
+<li><a class="reference external" href="#cherry-pick">cherry-pick (easier)</a></li>
+<li><a class="reference external" href="#manual-merge">manual merge</a></li>
+</ul>
+<p>Please read about <a class="reference external" href="#manual-merge">manual merge</a> first to learn the
+whole process.</p>
+<div class="section" id="cherry-pick">
+<h4>Cherry-pick<a class="headerlink" href="#cherry-pick" title="Permalink to this headline">¶</a></h4>
+<p>You can start to
+<a class="reference external" href="https://git-scm.com/docs/git-cherry-pick">cherry-pick</a> by your own,
+but we have made a special
+<a class="reference external" href="https://github.com/zfsonlinux/zfs-buildbot/blob/master/scripts/openzfs-merge.sh">script</a>,
+which tries to
+<a class="reference external" href="https://git-scm.com/docs/git-cherry-pick">cherry-pick</a> the patch
+automatically and generates the description.</p>
+<ol class="arabic simple" start="0">
+<li>Prepare environment:</li>
+</ol>
+<p>Mandatory git settings (add to <code class="docutils literal notranslate"><span class="pre">~/.gitconfig</span></code>):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">merge</span><span class="p">]</span>
+    <span class="n">renameLimit</span> <span class="o">=</span> <span class="mi">999999</span>
+<span class="p">[</span><span class="n">user</span><span class="p">]</span>
+    <span class="n">email</span> <span class="o">=</span> <span class="n">mail</span><span class="nd">@yourmail</span><span class="o">.</span><span class="n">com</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Your</span> <span class="n">Name</span>
+</pre></div>
+</div>
+<p>Download the script:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wget</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">raw</span><span class="o">.</span><span class="n">githubusercontent</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">zfsonlinux</span><span class="o">/</span><span class="n">zfs</span><span class="o">-</span><span class="n">buildbot</span><span class="o">/</span><span class="n">master</span><span class="o">/</span><span class="n">scripts</span><span class="o">/</span><span class="n">openzfs</span><span class="o">-</span><span class="n">merge</span><span class="o">.</span><span class="n">sh</span>
+</pre></div>
+</div>
+<ol class="arabic simple">
+<li>Run:</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">openzfs</span><span class="o">-</span><span class="n">merge</span><span class="o">.</span><span class="n">sh</span> <span class="o">-</span><span class="n">d</span> <span class="n">path_to_zfs_folder</span> <span class="o">-</span><span class="n">c</span> <span class="n">openzfs_commit_hash</span>
+</pre></div>
+</div>
+<p>This command will fetch all repositories, create a new branch
+<code class="docutils literal notranslate"><span class="pre">autoport-ozXXXX</span></code> (XXXX - OpenZFS issue number), try to cherry-pick,
+compile and check cstyle on success.</p>
+<p>If it succeeds without any merge conflicts - go to <code class="docutils literal notranslate"><span class="pre">autoport-ozXXXX</span></code>
+branch, it will have ready to pull commit. Congratulations, you can go
+to step 7!</p>
+<p>Otherwise you should go to step 2.</p>
+<ol class="arabic simple" start="2">
+<li>Resolve all merge conflicts manually. Easy method - install
+<a class="reference external" href="http://meldmerge.org/">Meld</a> or any other diff tool and run
+<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">mergetool</span></code>.</li>
+<li>Check all compile and cstyle errors (See <a class="reference external" href="#testing-a-patch">Testing a
+patch</a>).</li>
+<li>Commit your changes with any description.</li>
+<li>Update commit description (last commit will be changed):</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">openzfs</span><span class="o">-</span><span class="n">merge</span><span class="o">.</span><span class="n">sh</span> <span class="o">-</span><span class="n">d</span> <span class="n">path_to_zfs_folder</span> <span class="o">-</span><span class="n">g</span> <span class="n">openzfs_commit_hash</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="6">
+<li>Add any porting notes (if you have modified something):
+<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span> <span class="pre">--amend</span></code></li>
+<li>Push your commit to github:
+<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">push</span> <span class="pre">&lt;your-github-account&gt;</span> <span class="pre">autoport-ozXXXX</span></code></li>
+<li>Create a pull request to ZoL master branch.</li>
+<li>Go to <a class="reference external" href="#testing-a-patch">Testing a patch</a> section.</li>
+</ol>
+</div>
+<div class="section" id="manual-merge">
+<h4>Manual merge<a class="headerlink" href="#manual-merge" title="Permalink to this headline">¶</a></h4>
+<p><strong>Create a new branch.</strong> It is important to create a new branch for
+every commit you port to ZFS on Linux. This will allow you to easily
+submit your work as a GitHub pull request and it makes it possible to
+work on multiple OpenZFS changes concurrently. All development branches
+need to be based off of the ZFS master branch and it’s helpful to name
+the branches after the issue number you’re working on.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git checkout -b openzfs-&lt;issue-nr&gt; master
+</pre></div>
+</div>
+<p><strong>Generate a patch.</strong> One of the first things you’ll notice about the
+ZFS on Linux repository is that it is laid out differently than the
+OpenZFS repository. Organizationally it is much flatter, this is
+possible because it only contains the code for OpenZFS not an entire OS.
+That means that in order to apply a patch from OpenZFS the path names in
+the patch must be changed. A script called zfs2zol-patch.sed has been
+provided to perform this translation. Use the <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">format-patch</span></code>
+command and this script to generate a patch.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git format-patch --stdout &lt;commit-hash&gt;^..&lt;commit-hash&gt; | \
+    ./scripts/zfs2zol-patch.sed &gt;openzfs-&lt;issue-nr&gt;.diff
+</pre></div>
+</div>
+<p><strong>Apply the patch.</strong> In many cases the generated patch will apply
+cleanly to the repository. However, it’s important to keep in mind the
+zfs2zol-patch.sed script only translates the paths. There are often
+additional reasons why a patch might not apply. In some cases hunks of
+the patch may not be applicable to Linux and should be dropped. In other
+cases a patch may depend on other changes which must be applied first.
+The changes may also conflict with Linux specific modifications. In all
+of these cases the patch will need to be manually modified to apply
+cleanly while preserving the its original intent.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git am ./openzfs-&lt;commit-nr&gt;.diff
+</pre></div>
+</div>
+<p><strong>Update the commit message.</strong> By using <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">format-patch</span></code> to generate
+the patch and then <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">am</span></code> to apply it the original comment and
+authorship will be preserved. However, due to the formatting of the
+OpenZFS commit you will likely find that the entire commit comment has
+been squashed in to the subject line. Use <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span> <span class="pre">--amend</span></code> to
+cleanup the comment and be careful to follow <a class="reference external" href="http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html">these standard
+guidelines</a>.</p>
+<p>The summary line of an OpenZFS commit is often very long and you should
+truncate it to 50 characters. This is useful because it preserves the
+correct formatting of <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">log</span> <span class="pre">--pretty=oneline</span></code> command. Make sure to
+leave a blank line between the summary and body of the commit. Then
+include the full OpenZFS commit message wrapping any lines which exceed
+72 characters. Finally, add a <code class="docutils literal notranslate"><span class="pre">Ported-by</span></code> tag with your contact
+information and both a <code class="docutils literal notranslate"><span class="pre">OpenZFS-issue</span></code> and <code class="docutils literal notranslate"><span class="pre">OpenZFS-commit</span></code> tag with
+appropriate links. You’ll want to verify your commit contains all of the
+following information:</p>
+<ul class="simple">
+<li>The subject line from the original OpenZFS patch in the form:
+“OpenZFS &lt;issue-nr&gt; - short description”.</li>
+<li>The original patch authorship should be preserved.</li>
+<li>The OpenZFS commit message.</li>
+<li>The following tags:<ul>
+<li><strong>Authored by:</strong> Original patch author</li>
+<li><strong>Reviewed by:</strong> All OpenZFS reviewers from the original patch.</li>
+<li><strong>Approved by:</strong> All OpenZFS reviewers from the original patch.</li>
+<li><strong>Ported-by:</strong> Your name and email address.</li>
+<li><strong>OpenZFS-issue:</strong> https ://www.illumos.org/issues/issue</li>
+<li><strong>OpenZFS-commit:</strong> https
+://github.com/openzfs/openzfs/commit/hash</li>
+</ul>
+</li>
+<li><strong>Porting Notes:</strong> An optional section describing any changes
+required when porting.</li>
+</ul>
+<p>For example, OpenZFS issue 6873 was <a class="reference external" href="https://github.com/zfsonlinux/zfs/commit/b3744ae">applied to
+Linux</a> from this
+upstream <a class="reference external" href="https://github.com/openzfs/openzfs/commit/ee06391">OpenZFS
+commit</a>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">OpenZFS</span> <span class="mi">6873</span> <span class="o">-</span> <span class="n">zfs_destroy_snaps_nvl</span> <span class="n">leaks</span> <span class="n">errlist</span>
+
+<span class="n">Authored</span> <span class="n">by</span><span class="p">:</span> <span class="n">Chris</span> <span class="n">Williamson</span> <span class="o">&lt;</span><span class="n">chris</span><span class="o">.</span><span class="n">williamson</span><span class="nd">@delphix</span><span class="o">.</span><span class="n">com</span><span class="o">&gt;</span>
+<span class="n">Reviewed</span> <span class="n">by</span><span class="p">:</span> <span class="n">Matthew</span> <span class="n">Ahrens</span> <span class="o">&lt;</span><span class="n">mahrens</span><span class="nd">@delphix</span><span class="o">.</span><span class="n">com</span><span class="o">&gt;</span>
+<span class="n">Reviewed</span> <span class="n">by</span><span class="p">:</span> <span class="n">Paul</span> <span class="n">Dagnelie</span> <span class="o">&lt;</span><span class="n">pcd</span><span class="nd">@delphix</span><span class="o">.</span><span class="n">com</span><span class="o">&gt;</span>
+<span class="n">Ported</span><span class="o">-</span><span class="n">by</span><span class="p">:</span> <span class="n">Denys</span> <span class="n">Rtveliashvili</span> <span class="o">&lt;</span><span class="n">denys</span><span class="nd">@rtveliashvili</span><span class="o">.</span><span class="n">name</span><span class="o">&gt;</span>
+
+<span class="n">lzc_destroy_snaps</span><span class="p">()</span> <span class="n">returns</span> <span class="n">an</span> <span class="n">nvlist</span> <span class="ow">in</span> <span class="n">errlist</span><span class="o">.</span>
+<span class="n">zfs_destroy_snaps_nvl</span><span class="p">()</span> <span class="n">should</span> <span class="n">nvlist_free</span><span class="p">()</span> <span class="n">it</span> <span class="n">before</span> <span class="n">returning</span><span class="o">.</span>
+
+<span class="n">OpenZFS</span><span class="o">-</span><span class="n">issue</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="o">.</span><span class="n">illumos</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">issues</span><span class="o">/</span><span class="mi">6873</span>
+<span class="n">OpenZFS</span><span class="o">-</span><span class="n">commit</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">openzfs</span><span class="o">/</span><span class="n">openzfs</span><span class="o">/</span><span class="n">commit</span><span class="o">/</span><span class="n">ee06391</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="testing-a-patch">
+<h3>Testing a Patch<a class="headerlink" href="#testing-a-patch" title="Permalink to this headline">¶</a></h3>
+<p><strong>Build the source.</strong> Verify the patched source compiles without errors
+and all warnings are resolved.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ make -s -j$(nproc)
+</pre></div>
+</div>
+<p><strong>Run the style checker.</strong> Verify the patched source passes the style
+checker, the command should return without printing any output.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ make cstyle
+</pre></div>
+</div>
+<p><strong>Open a Pull Request.</strong> When your patch builds cleanly and passes the
+style checks <a class="reference external" href="https://help.github.com/articles/creating-a-pull-request/">open a new pull
+request</a>.
+The pull request will be queued for <a class="reference external" href="https://github.com/zfsonlinux/zfs-buildbot/">automated
+testing</a>. As part of the
+testing the change is built for a wide range of Linux distributions and
+a battery of functional and stress tests are run to detect regressions.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git push &lt;your-github-account&gt; openzfs-&lt;issue-nr&gt;
+</pre></div>
+</div>
+<p><strong>Fix any issues.</strong> Testing takes approximately 2 hours to fully
+complete and the results are posted in the GitHub <a class="reference external" href="https://github.com/zfsonlinux/zfs/pull/4594">pull
+request</a>. All the tests
+are expected to pass and you should investigate and resolve any test
+failures. The <a class="reference external" href="https://github.com/zfsonlinux/zfs-buildbot/tree/master/scripts">test
+scripts</a>
+are all available and designed to run locally in order reproduce an
+issue. Once you’ve resolved the issue force update the pull request to
+trigger a new round of testing. Iterate until all the tests are passing.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># Fix issue, amend commit, force update branch.
+$ git commit --amend
+$ git push --force &lt;your-github-account&gt; openzfs-&lt;issue-nr&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="merging-the-patch">
+<h3>Merging the Patch<a class="headerlink" href="#merging-the-patch" title="Permalink to this headline">¶</a></h3>
+<p><strong>Review.</strong> Lastly one of the ZFS on Linux maintainers will make a final
+review of the patch and may request additional changes. Once the
+maintainer is happy with the final version of the patch they will add
+their signed-off-by, merge it to the master branch, mark it complete on
+the tracking page, and thank you for your contribution to the project!</p>
+</div>
+</div>
+<div class="section" id="porting-zfs-on-linux-changes-to-openzfs">
+<h2>Porting ZFS on Linux changes to OpenZFS<a class="headerlink" href="#porting-zfs-on-linux-changes-to-openzfs" title="Permalink to this headline">¶</a></h2>
+<p>Often an issue will be first fixed in ZFS on Linux or a new feature
+developed. Changes which are not Linux specific should be submitted
+upstream to the OpenZFS GitHub repository for review. The process for
+this is described in the <a class="reference external" href="https://github.com/openzfs/openzfs/">OpenZFS
+README</a>.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static//img/320px-Open-ZFS-Secondary-Logo-Colour-halfsize.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../Getting Started/index.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Project and Community/index.html">Project and Community</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Developer Resources</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Custom Packages.html">Custom Packages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Building ZFS.html">Building ZFS</a></li>
+<li class="toctree-l2"><a class="reference external" href="http://build.zfsonlinux.org/tgrid?length=100&amp;branch=master&amp;category=Platforms&amp;rev_order=desc">Buildbot Status</a></li>
+<li class="toctree-l2"><a class="reference external" href="http://build.zfsonlinux.org/known-issues.html">Buildbot Issue Tracking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Buildbot Options.html">Buildbot Options</a></li>
+<li class="toctree-l2"><a class="reference external" href="http://build.zfsonlinux.org/openzfs-tracking.html">OpenZFS Tracking</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">OpenZFS Patches</a></li>
+<li class="toctree-l2"><a class="reference internal" href="OpenZFS Exceptions.html">OpenZFS Exceptions</a></li>
+<li class="toctree-l2"><a class="reference external" href="http://open-zfs.org/wiki/Developer_resources">OpenZFS Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Git and GitHub for beginners.html">Git and GitHub for beginners (ZoL edition)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../Performance and tuning/index.html">Performance and tuning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Basics concepts/index.html">Basic concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../License.html">License</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Developer Resources</a><ul>
+      <li>Previous: <a href="Buildbot Options.html" title="previous chapter">Buildbot Options</a></li>
+      <li>Next: <a href="OpenZFS Exceptions.html" title="next chapter">OpenZFS Exceptions</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, OpenZFS.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/Developer Resources/OpenZFS Patches.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

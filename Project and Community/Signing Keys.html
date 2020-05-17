@@ -1,0 +1,195 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Signing Keys &#8212; OpenZFS  documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Developer Resources" href="../Developer Resources/index.html" />
+    <link rel="prev" title="Mailing Lists" href="Mailing Lists.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="signing-keys">
+<h1>Signing Keys<a class="headerlink" href="#signing-keys" title="Permalink to this headline">¶</a></h1>
+<p>All tagged ZFS on Linux
+<a class="reference external" href="https://github.com/zfsonlinux/zfs/releases">releases</a> are signed by
+the official maintainer for that branch. These signatures are
+automatically verified by GitHub and can be checked locally by
+downloading the maintainers public key.</p>
+<div class="section" id="maintainers">
+<h2>Maintainers<a class="headerlink" href="#maintainers" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="release-branch-spl-zfs-release">
+<h3>Release branch (spl/zfs-*-release)<a class="headerlink" href="#release-branch-spl-zfs-release" title="Permalink to this headline">¶</a></h3>
+<div class="line-block">
+<div class="line"><strong>Maintainer:</strong> <a class="reference external" href="https://github.com/nedbass">Ned Bass</a></div>
+<div class="line"><strong>Download:</strong>
+<a class="reference external" href="http://pgp.mit.edu/pks/lookup?op=vindex&amp;search=0xB97467AAC77B9667&amp;fingerprint=on">pgp.mit.edu</a></div>
+<div class="line"><strong>Key ID:</strong> C77B9667</div>
+<div class="line"><strong>Fingerprint:</strong> 29D5 610E AE29 41E3 55A2 FE8A B974 67AA C77B 9667</div>
+</div>
+<div class="line-block">
+<div class="line"><strong>Maintainer:</strong> <a class="reference external" href="https://github.com/tonyhutter">Tony Hutter</a></div>
+<div class="line"><strong>Download:</strong>
+<a class="reference external" href="http://pgp.mit.edu/pks/lookup?op=vindex&amp;search=0x6ad860eed4598027&amp;fingerprint=on">pgp.mit.edu</a></div>
+<div class="line"><strong>Key ID:</strong> D4598027</div>
+<div class="line"><strong>Fingerprint:</strong> 4F3B A9AB 6D1F 8D68 3DC2 DFB5 6AD8 60EE D459 8027</div>
+</div>
+</div>
+<div class="section" id="master-branch-master">
+<h3>Master branch (master)<a class="headerlink" href="#master-branch-master" title="Permalink to this headline">¶</a></h3>
+<div class="line-block">
+<div class="line"><strong>Maintainer:</strong> <a class="reference external" href="https://github.com/behlendorf">Brian Behlendorf</a></div>
+<div class="line"><strong>Download:</strong>
+<a class="reference external" href="http://pgp.mit.edu/pks/lookup?op=vindex&amp;search=0x0AB9E991C6AF658B&amp;fingerprint=on">pgp.mit.edu</a></div>
+<div class="line"><strong>Key ID:</strong> C6AF658B</div>
+<div class="line"><strong>Fingerprint:</strong> C33D F142 657E D1F7 C328 A296 0AB9 E991 C6AF 658B</div>
+</div>
+</div>
+</div>
+<div class="section" id="checking-the-signature-of-a-git-tag">
+<h2>Checking the Signature of a Git Tag<a class="headerlink" href="#checking-the-signature-of-a-git-tag" title="Permalink to this headline">¶</a></h2>
+<p>First import the public key listed above in to your key ring.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ gpg --keyserver pgp.mit.edu --recv C6AF658B
+gpg: requesting key C6AF658B from hkp server pgp.mit.edu
+gpg: key C6AF658B: &quot;Brian Behlendorf &lt;behlendorf1@llnl.gov&gt;&quot; not changed
+gpg: Total number processed: 1
+gpg:              unchanged: 1
+</pre></div>
+</div>
+<p>After the pubic key is imported the signature of a git tag can be
+verified as shown.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git tag --verify zfs-0.6.5
+object 7a27ad00ae142b38d4aef8cc0af7a72b4c0e44fe
+type commit
+tag zfs-0.6.5
+tagger Brian Behlendorf &lt;behlendorf1@llnl.gov&gt; 1441996302 -0700
+
+ZFS Version 0.6.5
+gpg: Signature made Fri 11 Sep 2015 11:31:42 AM PDT using DSA key ID C6AF658B
+gpg: Good signature from &quot;Brian Behlendorf &lt;behlendorf1@llnl.gov&gt;&quot;
+gpg:                 aka &quot;Brian Behlendorf (LLNL) &lt;behlendorf1@llnl.gov&gt;&quot;
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static//img/320px-Open-ZFS-Secondary-Logo-Colour-halfsize.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../Getting Started/index.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Project and Community</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Admin Documentation.html">Admin Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FAQ.html">FAQ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FAQ hole birth.html">Short explanation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FAQ hole birth.html#faq">FAQ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FAQ hole birth.html#long-explanation">Long explanation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Mailing Lists.html">Mailing Lists</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Signing Keys</a></li>
+<li class="toctree-l2"><a class="reference external" href="https://github.com/openzfs/zfs/issues">Issue Tracker</a></li>
+<li class="toctree-l2"><a class="reference external" href="https://github.com/openzfs/zfs/releases">Releases</a></li>
+<li class="toctree-l2"><a class="reference external" href="https://github.com/openzfs/zfs/milestones">Roadmap</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../Developer Resources/index.html">Developer Resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Performance and tuning/index.html">Performance and tuning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Basics concepts/index.html">Basic concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../License.html">License</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Project and Community</a><ul>
+      <li>Previous: <a href="Mailing Lists.html" title="previous chapter">Mailing Lists</a></li>
+      <li>Next: <a href="../Developer Resources/index.html" title="next chapter">Developer Resources</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, OpenZFS.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/Project and Community/Signing Keys.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
